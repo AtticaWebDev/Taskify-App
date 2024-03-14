@@ -5,6 +5,18 @@ import { Modal } from "../Modal/Modal";
 
 export function ListItem({ todo, getData }) {
   const [showModal, setShowModal] = useState(false);
+  const deleteItem = async () => {
+    try {
+      const response = await fetch(`http://localhost:8000/task/${todo.id}`, {
+        method: "DELETE",
+      });
+      if (response.status === 200) {
+        getData();
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   return (
     <li className="list-item">
@@ -17,7 +29,9 @@ export function ListItem({ todo, getData }) {
         <button className="edit" onClick={() => setShowModal(true)}>
           Modifier
         </button>
-        <button className="delete">Supprimer</button>
+        <button className="delete" onClick={deleteItem}>
+          Supprimer
+        </button>
       </div>
 
       {showModal && (
