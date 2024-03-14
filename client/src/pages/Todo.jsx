@@ -2,11 +2,13 @@ import { Auth } from "../components/Auth/Auth";
 import { ListHeader } from "../components/ListHeader/ListHeader";
 import { ListItem } from "../components/ListItem/ListItem";
 import { useEffect, useState } from "react";
+import { useCookies } from "react-cookie";
 
 export function Todo() {
-  const userEmail = "kriss@lolo.com";
+  const [cookies, setCookie, removeCookie] = useCookies(["AuthToken", "Email"]);
+  const authToken = cookies.AuthToken;
+  const userEmail = cookies.Email;
   const [todos, setTodos] = useState(null);
-  const authToken = false;
 
   const getData = async () => {
     try {
@@ -20,11 +22,9 @@ export function Todo() {
 
   useEffect(() => {
     if (authToken) {
-      getData;
-    } // Appel de la fonction getData à l'intérieur de useEffect
-  }, []); // Dépendance vide pour exécuter l'effet une seule fois lors du montage du composant
-
-  console.log(todos);
+      getData();
+    }
+  }, [authToken, userEmail]); // Dépendance userEmail ajoutée pour que useEffect s'exécute lorsque l'email change
 
   const sortedTodos = todos?.sort(
     (a, b) => new Date(a.date) - new Date(b.date)
@@ -37,7 +37,7 @@ export function Todo() {
         <>
           <ListHeader listName={"Taskify"} getData={getData} />
           {sortedTodos?.map((todo) => (
-            <ListItem key={todo.id} todo={todo} getData={getData} />
+            <ListItem key={todo.id} todo={todo} />
           ))}
         </>
       )}

@@ -1,11 +1,17 @@
 import "./Modal.css";
 import { useState, useEffect } from "react";
+import { useCookies } from "react-cookie";
 
 export function Modal({ mode, setShowModal, getData, todo }) {
+  const [cookies] = useCookies(["AuthToken"]);
+
   const editMode = mode === "Modifier";
+
   const [data, setData] = useState({
-    title: editMode ? todo.title : "",
-    progress: editMode ? todo.progress : 50,
+    user_email: cookies.Email,
+    title: "",
+    progress: 50,
+    date: new Date(),
   });
 
   useEffect(() => {
@@ -16,18 +22,12 @@ export function Modal({ mode, setShowModal, getData, todo }) {
         progress: todo.progress,
         date: todo.date,
       });
-    } else {
-      setData({
-        user_email: "kriss@lolo.com",
-        title: "",
-        progress: 50,
-        date: new Date(),
-      });
     }
   }, [editMode, todo]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    console.log("Submitting form"); // Ajouter un message de débogage pour vérifier si la soumission est déclenchée
     try {
       const url = editMode
         ? `http://localhost:8000/task/${todo.id}`
@@ -38,14 +38,15 @@ export function Modal({ mode, setShowModal, getData, todo }) {
         method: method,
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${cookies.AuthToken}`,
         },
         body: JSON.stringify(data),
       });
 
       if (response.ok) {
         console.log(`Tâche ${editMode ? "modifiée" : "créée"} avec succès !`);
-        setShowModal(false);
         getData();
+        setShowModal(false);
       } else {
         console.error(`Erreur ${response.status}: ${response.statusText}`);
       }

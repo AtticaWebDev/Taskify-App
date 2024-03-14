@@ -1,15 +1,17 @@
-import  { useState } from "react";
+import React, { useState } from "react";
 import "./Auth.css";
 import { Link } from "react-router-dom";
+import { useCookies } from "react-cookie";
 
 export function Auth() {
+  const [cookies, setCookie, removeCookie] = useCookies(null);
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");                                                                                                                                                                                                                       
+  const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState(null);
 
-  console.log(email, password, confirmPassword);
+  console.log(cookies);
 
   const viewLogin = (status) => {
     setError(null);
@@ -18,27 +20,24 @@ export function Auth() {
 
   const handleSubmit = async (e, endpoint) => {
     e.preventDefault();
-    if (!isLogin && password !== confirmPassword) {
-      setError("Tes identifiants sont incorrects. Réessaye.");
-      return;
-    }
 
-    const response = await fetch(`http://localhost:8000/task/${endpoint}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
-    });
+    try {
+      const response = await fetch(`http://localhost:8000/${endpoint}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
 
-    if (!response.ok) {
-      throw new Error(`Erreur HTTP! Statut: ${response.status}`);
-    }
-
-    const data = await response.json();
-    if (data.detail) {
-      setError(data.detail);
-    } else {
-      // Ajoutez ici votre fonction setCookie
-      console.log("User logged in:", data);
+      const data = await response.json();
+      if (data.detail) {
+        setError(data.detail);
+      } else {
+        setCookie("Email", data.email);
+        setCookie("AuthToken", data.token);
+        window.location.reload();
+      }
+    } catch (error) {
+      console.error("Erreur lors de la requête fetch :", error);
     }
   };
 

@@ -24,7 +24,6 @@ app.get("/task/:userEmail", async (req, res) => {
 });
 
 // Creer une nouvelle tache
-
 app.post("/task", async (req, res) => {
   const { user_email, title, progress, date } = req.body;
   console.log(user_email, title, progress, date);
@@ -34,12 +33,12 @@ app.post("/task", async (req, res) => {
       `INSERT INTO task(id, user_email, title, progress, date) VALUES($1, $2, $3, $4, $5)`,
       [id, user_email, title, progress, date]
     );
-    res.status(201).send("Tâche créée avec succès");
+    res.status(201).json({ message: "Tâche créée avec succès", taskId: id });
   } catch (err) {
     console.error(err);
-    res
-      .status(500)
-      .send("Une erreur s'est produite lors de la création de la tâche");
+    res.status(500).json({
+      error: "Une erreur s'est produite lors de la création de la tâche",
+    });
   }
 });
 
@@ -53,35 +52,47 @@ app.put("/task/:id", async (req, res) => {
       "UPDATE task SET user_email = $1, title = $2, progress = $3, date = $4 WHERE id = $5",
       [user_email, title, progress, date, id]
     );
-    res.json(editTask);
+    res.json({ message: "Tâche modifiée avec succès" });
   } catch (err) {
     console.error(err);
+    res.status(500).json({
+      error: "Une erreur s'est produite lors de la modification de la tâche",
+    });
   }
 });
 
-// Supression d'un tache
-
+// Suppression d'un tache
 app.delete("/task/:id", async (req, res) => {
   const { id } = req.params;
-  const deleteTask = await pool.query("DELETE FROM task WHERE id = $1", [id]);
-  res.json(deleteTask);
   try {
+    await pool.query("DELETE FROM task WHERE id = $1", [id]);
+    res.json({ message: "Tâche supprimée avec succès" });
   } catch (err) {
     console.error(err);
+    res.status(500).json({
+      error: "Une erreur s'est produite lors de la suppression de la tâche",
+    });
   }
 });
+
+// inscription
 
 // inscription
 app.post("/signup", async (req, res) => {
   const { email, password } = req.body;
   const salt = bcrypt.genSaltSync(10);
   const hashedPassword = bcrypt.hashSync(password, salt);
+
   try {
-    const signup = await pool.query(
-      `INSERT INTO users (email, hashed_password) VALUES($1,$2)`,
+    const signUp = await pool.query(
+      `INSERT INTO users (email, hashed_password) VALUES ($1,$2)`,
       [email, hashedPassword]
     );
+
+    // Générez le jeton JWT ici
     const token = jwt.sign({ email }, "secret", { expiresIn: "1hr" });
+
+    // Ajoutez le jeton à la réponse
     res.json({ email, token });
   } catch (err) {
     console.error(err);
@@ -90,11 +101,36 @@ app.post("/signup", async (req, res) => {
     }
   }
 });
+
 // connexion
 
 app.post("/login", async (req, res) => {
+  const { email, password } = req.body;
+
   try {
-  } catch (err) {}
+    const user = await pool.query("SELECT * FROM users WHERE email = $1", [
+      email,
+    ]);
+
+    if (user.rows.length === 0) {
+      return res
+        .status(401)
+        .json({ detail: "Tes identifiants sont incorrects. Réessaye." });
+    }
+
+    const hashedPassword = user.rows[0].hashed_password;
+
+    if (!bcrypt.compareSync(password, hashedPassword)) {
+      return res.status(401).json({ detail: "Mot de passe incorrect." });
+    }
+
+    const token = jwt.sign({ email }, "secret", { expiresIn: "1hr" });
+
+    res.json({ email, token });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ detail: "Une erreur s'est produite." });
+  }
 });
 
 app.listen(PORT, () => console.log(`serveur exécuté sur le port ${PORT}`));

@@ -1,8 +1,10 @@
 import "./ListHeader.css";
 import { Modal } from "../Modal/Modal";
 import { useState, useEffect } from "react";
+import { useCookies } from "react-cookie";
 
 export function ListHeader({ listName, getData }) {
+  const [cookies, setrCookie, removeCookie] = useCookies(null);
   const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
@@ -15,6 +17,9 @@ export function ListHeader({ listName, getData }) {
 
   const signOut = () => {
     console.log("signout");
+    removeCookie("Email");
+    removeCookie("AuthToken");
+    window.location.reload(); // Reload la page après la déconnexion
   };
 
   const handleCreateTask = () => {
