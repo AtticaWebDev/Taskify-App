@@ -1,0 +1,14 @@
+{
+  "name": "taskify-app",
+  "version": "1.0.0",
+  "description": "Taskify est une application de liste de tâches simple et intuitive. Créez des tâches, fixez des dates d'échéance, et cochez-les une fois terminées. Restez organisé et productif, où que vous soyez, grâce à Taskify.",
+  "scripts": {
+    "build": "if-env TYPE=server && (cd server && npm install) || (cd client && npm install",
+    "server": "node .server/server.js",
+    "client": "cd client && npm run dev",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "if-env": "^1.0.4"
+  }
+}

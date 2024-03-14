@@ -1,0 +1,21 @@
+.list-item {
+  width: 90%;
+  margin: 50px auto;
+  border-radius: 10px;
+  /* box-shadow: #070510 0 1px; */
+  background-color: #a693ea;
+  padding: 10px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.button-container .edit {
+  background-color: transparent;
+  border: 1px solid #ffffff;
+}
+
+.button-container .edit:hover {
+  background-color: #2d1190;
+  color: black;
+  border: 1px solid #2d1190;
+}
